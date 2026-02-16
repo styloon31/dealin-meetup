@@ -56,7 +56,7 @@ const MeetupHeader: React.FC = () => {
           {/* CTA Button - Always visible in header */}
           <a href="#deal-form">
             <button className="bg-[#192890] hover:bg-blue-800 text-white text-sm md:text-lg font-semibold px-6 py-3 rounded-full transition shadow-lg hover:shadow-xl active:scale-95">
-              Claim Your Invite
+              Secure Your Spot
             </button>
           </a>
         </div>

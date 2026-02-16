@@ -15,7 +15,7 @@ const SignupSuccessModal = ({
   isOpen,
   onClose,
   userName,
-  whatsappLink = "https://chat.whatsapp.com/YOUR_GROUP_LINK", // Replace with actual link
+  whatsappLink = "https://chat.whatsapp.com/HhOAmZjWAGS1bfMIbrpuUB", // Replace with actual link
 }: SignupSuccessModalProps) => {
   if (!isOpen) return null;
 

@@ -374,7 +374,7 @@ const RegistrationSection = () => {
         isOpen={showSuccessModal}
         onClose={handleCloseModal}
         userName={formData.fullName}
-        whatsappLink="https://chat.whatsapp.com/YOUR_ACTUAL_GROUP_LINK"
+        whatsappLink="https://chat.whatsapp.com/HhOAmZjWAGS1bfMIbrpuUB"
       />
       
       {/* --- FORM CARD --- */}
@@ -405,10 +405,10 @@ const RegistrationSection = () => {
           <div className="flex items-center justify-center max-w-xl mx-auto mb-10 md:mb-14 text-sm md:text-base">
             {/* Step 1 Indicator */}
             <div
-              className={`flex items-center gap-2 ${step >= 1 ? "opacity-100" : "opacity-50"}`}
+              className={`py-1.5 px-3 md:py-0 md:px-0 flex items-center gap-2 ${step >= 1 ? "opacity-100" : "opacity-50"}`}
             >
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-sm transition-colors ${step > 1 ? "bg-[#4FD896] text-white" : "bg-[#4FD896] text-white"}`}
+                className={`py-1.5 px-3 md:py-0 md:px-0 md:w-8 md:h-8 rounded-full flex items-center justify-center    text-sm shadow-sm transition-colors ${step > 1 ? "bg-[#4FD896] text-white" : "bg-[#4FD896] text-white"}`}
               >
                 {step > 1 ? <Check className="w-4 h-4" /> : "1"}
               </div>
@@ -428,7 +428,7 @@ const RegistrationSection = () => {
               className={`flex items-center gap-2 ${step === 2 ? "opacity-100" : "opacity-50"}`}
             >
               <div
-                className={`w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm transition-colors ${step === 2 ? "border-[#4FD896] bg-[#4FD896] text-white" : "border-gray-300 bg-white text-gray-400"}`}
+                className={`py-1.5 px-3 md:py-0 md:px-0 w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm transition-colors ${step === 2 ? "border-[#4FD896] bg-[#4FD896] text-white" : "border-gray-300 bg-white text-gray-400"}`}
               >
                 2
               </div>
