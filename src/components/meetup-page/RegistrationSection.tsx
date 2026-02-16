@@ -10,6 +10,9 @@ import "swiper/css/pagination";
 import Image from "next/image";
 import SignupSuccessModal from "./SignupSucessModel";
 
+// --- Constants ---
+const OTHER_OPTION = "Other"; // Constant for the "Other" logic
+
 // --- Assets & Icons ---
 const TopoPattern = () => (
   <Image
@@ -157,11 +160,13 @@ const CustomDropdown = ({
   );
 };
 
+// --- Main Component ---
 const RegistrationSection = () => {
   const [step, setStep] = useState(1);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
+  // Initial State
   const initialFormState = {
     fullName: "",
     phone: "",
@@ -175,8 +180,27 @@ const RegistrationSection = () => {
 
   const [formData, setFormData] = useState(initialFormState);
 
+  // New State for "Other" text inputs
+  const [customInputs, setCustomInputs] = useState({
+    industry: "",
+    location: "",
+    goal: "",
+  });
+
+  const formRef = useRef<HTMLDivElement>(null);
+
+  // --- Handlers ---
+
   const handleFinalSubmit = async () => {
     setLoading(true);
+
+    // Prepare payload: swap "Other" with the custom input value
+    const finalPayload = {
+      ...formData,
+      industry: formData.industry === OTHER_OPTION ? customInputs.industry : formData.industry,
+      location: formData.location === OTHER_OPTION ? customInputs.location : formData.location,
+      goal: formData.goal === OTHER_OPTION ? customInputs.goal : formData.goal,
+    };
 
     try {
       const response = await fetch("/api/submit-form", {
@@ -184,14 +208,13 @@ const RegistrationSection = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(finalPayload),
       });
 
       const result = await response.json();
 
       if (result.success) {
         setShowSuccessModal(true);
-        // Do not reset form here, wait for modal close
       } else {
         alert("Something went wrong. Please try again.");
       }
@@ -205,11 +228,10 @@ const RegistrationSection = () => {
 
   const handleCloseModal = () => {
     setShowSuccessModal(false);
-    setFormData(initialFormState); // Reset Data
-    setStep(1); // Go back to Step 1
+    setFormData(initialFormState);
+    setCustomInputs({ industry: "", location: "", goal: "" }); // Reset custom inputs
+    setStep(1);
   };
-
-  const formRef = useRef<HTMLDivElement>(null);
 
   const handleNext = () => {
     if (
@@ -229,15 +251,27 @@ const RegistrationSection = () => {
     "Contractor / Project Consultant",
   ].includes(formData.role);
 
+  // Validation Logic including Custom Inputs
   const isStep2Valid = () => {
+    // Helper to check if a field is valid (standard or custom)
+    const isValidField = (fieldValue: string, customValue: string) => {
+      if (!fieldValue) return false;
+      if (fieldValue === OTHER_OPTION) return customValue.trim().length > 0;
+      return true;
+    };
+
     if (isBroker) {
-      return formData.industry && formData.location && formData.goal;
+      return (
+        isValidField(formData.industry, customInputs.industry) &&
+        isValidField(formData.location, customInputs.location) &&
+        isValidField(formData.goal, customInputs.goal)
+      );
     } else {
       return (
         formData.companyName &&
-        formData.industry &&
-        formData.location &&
-        formData.goal
+        isValidField(formData.industry, customInputs.industry) &&
+        isValidField(formData.location, customInputs.location) &&
+        isValidField(formData.goal, customInputs.goal)
       );
     }
   };
@@ -249,7 +283,7 @@ const RegistrationSection = () => {
     }
   };
 
-  // --- OPTIONS DATA ---
+  // --- OPTIONS DATA (Added "Other") ---
   const roleOptions = [
     "Manufacturer / Factory Owner",
     "Wholesaler / Distributor / Stockist",
@@ -269,6 +303,7 @@ const RegistrationSection = () => {
     "Market Price Intelligence",
     "Project Partnership / Collaboration",
     "Explore DealIn Community",
+    OTHER_OPTION,
   ];
 
   const brokerGoalOptions = [
@@ -278,6 +313,7 @@ const RegistrationSection = () => {
     "Market Price & Inventory Intelligence",
     "Project Partnership & Collaboration",
     "Explore DealIn Community",
+    OTHER_OPTION,
   ];
 
   const locationOptions = [
@@ -294,6 +330,7 @@ const RegistrationSection = () => {
     "Central India (Indore, Raipur)",
     "PAN India (Operating Nationally)",
     "International / Export-Import",
+    OTHER_OPTION,
   ];
 
   const brokerSpecializationOptions = [
@@ -308,6 +345,7 @@ const RegistrationSection = () => {
     "Corporate & Institutional Sales",
     "Business & Strategic Consultation",
     "Industrial Service Provider",
+    OTHER_OPTION,
   ];
 
   const sellerIndustryOptions = [
@@ -324,6 +362,7 @@ const RegistrationSection = () => {
     "Energy & Solar Solutions",
     "B2B Services (Logistics, Warehousing, Taxation, Legal)",
     "Technology & AI Solutions",
+    OTHER_OPTION,
   ];
 
   return (
@@ -331,13 +370,13 @@ const RegistrationSection = () => {
       id="deal-form"
       className="min-h-screen bg-[#F9F9F9] flex flex-col justify-center items-center py-12 px-4 font-sans"
     >
-      
       <SignupSuccessModal
         isOpen={showSuccessModal}
         onClose={handleCloseModal}
         userName={formData.fullName}
         whatsappLink="https://chat.whatsapp.com/YOUR_ACTUAL_GROUP_LINK"
       />
+      
       {/* --- FORM CARD --- */}
       <div
         ref={formRef}
@@ -364,6 +403,7 @@ const RegistrationSection = () => {
 
           {/* Stepper */}
           <div className="flex items-center justify-center max-w-xl mx-auto mb-10 md:mb-14 text-sm md:text-base">
+            {/* Step 1 Indicator */}
             <div
               className={`flex items-center gap-2 ${step >= 1 ? "opacity-100" : "opacity-50"}`}
             >
@@ -383,6 +423,7 @@ const RegistrationSection = () => {
               className={`flex-1 h-[1px] mx-4 min-w-[20px] max-w-[100px] transition-colors ${step > 1 ? "bg-[#4FD896]" : "bg-gray-300"}`}
             />
 
+            {/* Step 2 Indicator */}
             <div
               className={`flex items-center gap-2 ${step === 2 ? "opacity-100" : "opacity-50"}`}
             >
@@ -479,6 +520,8 @@ const RegistrationSection = () => {
           {step === 2 && (
             <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Field 1: Company Name OR Specialization */}
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-bold text-gray-700 flex items-center gap-1">
                     {isBroker
@@ -488,15 +531,27 @@ const RegistrationSection = () => {
                   </label>
 
                   {isBroker ? (
-                    <CustomDropdown
-                      label=""
-                      options={brokerSpecializationOptions}
-                      value={formData.industry}
-                      onChange={(val) =>
-                        setFormData({ ...formData, industry: val })
-                      }
-                      placeholder="Select Specialization"
-                    />
+                    <>
+                      <CustomDropdown
+                        label="" 
+                        options={brokerSpecializationOptions}
+                        value={formData.industry}
+                        onChange={(val) =>
+                          setFormData({ ...formData, industry: val })
+                        }
+                        placeholder="Select Specialization"
+                      />
+                      {/* CONDITIONAL INPUT FOR 'OTHER' */}
+                      {formData.industry === OTHER_OPTION && (
+                        <input
+                          type="text"
+                          placeholder="Please specify your specialization"
+                          value={customInputs.industry}
+                          onChange={(e) => setCustomInputs({...customInputs, industry: e.target.value})}
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all text-gray-700 placeholder-gray-400 mt-2"
+                        />
+                      )}
+                    </>
                   ) : (
                     <input
                       type="text"
@@ -513,6 +568,7 @@ const RegistrationSection = () => {
                   )}
                 </div>
 
+                {/* Field 2: Area OR Industry */}
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-bold text-gray-700 flex items-center gap-1">
                     {isBroker ? "Area of Operation" : "Core Industry/ Sector"}{" "}
@@ -520,43 +576,78 @@ const RegistrationSection = () => {
                   </label>
 
                   {isBroker ? (
-                    <CustomDropdown
-                      label=""
-                      options={locationOptions}
-                      value={formData.location}
-                      onChange={(val) =>
-                        setFormData({ ...formData, location: val })
-                      }
-                      placeholder="Select Area"
-                    />
+                    <>
+                      <CustomDropdown
+                        label=""
+                        options={locationOptions}
+                        value={formData.location}
+                        onChange={(val) =>
+                          setFormData({ ...formData, location: val })
+                        }
+                        placeholder="Select Area"
+                      />
+                      {formData.location === OTHER_OPTION && (
+                        <input
+                          type="text"
+                          placeholder="Please specify your area"
+                          value={customInputs.location}
+                          onChange={(e) => setCustomInputs({...customInputs, location: e.target.value})}
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all text-gray-700 placeholder-gray-400 mt-2"
+                        />
+                      )}
+                    </>
                   ) : (
-                    <CustomDropdown
-                      label=""
-                      options={sellerIndustryOptions}
-                      value={formData.industry}
-                      onChange={(val) =>
-                        setFormData({ ...formData, industry: val })
-                      }
-                      placeholder="Select Industry"
-                    />
+                    <>
+                      <CustomDropdown
+                        label=""
+                        options={sellerIndustryOptions}
+                        value={formData.industry}
+                        onChange={(val) =>
+                          setFormData({ ...formData, industry: val })
+                        }
+                        placeholder="Select Industry"
+                      />
+                      {formData.industry === OTHER_OPTION && (
+                        <input
+                          type="text"
+                          placeholder="Please specify your industry"
+                          value={customInputs.industry}
+                          onChange={(e) => setCustomInputs({...customInputs, industry: e.target.value})}
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all text-gray-700 placeholder-gray-400 mt-2"
+                        />
+                      )}
+                    </>
                   )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Field 3: Location (Seller) OR Goal (Broker) */}
                 {!isBroker && (
-                  <CustomDropdown
-                    label="Primary Business Location"
-                    placeholder="Select your location"
-                    options={locationOptions}
-                    value={formData.location}
-                    onChange={(val) =>
-                      setFormData({ ...formData, location: val })
-                    }
-                  />
+                  <div className="flex flex-col gap-2">
+                    <CustomDropdown
+                      label="Primary Business Location"
+                      placeholder="Select your location"
+                      options={locationOptions}
+                      value={formData.location}
+                      onChange={(val) =>
+                        setFormData({ ...formData, location: val })
+                      }
+                    />
+                    {formData.location === OTHER_OPTION && (
+                        <input
+                          type="text"
+                          placeholder="Please specify your location"
+                          value={customInputs.location}
+                          onChange={(e) => setCustomInputs({...customInputs, location: e.target.value})}
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all text-gray-700 placeholder-gray-400"
+                        />
+                    )}
+                  </div>
                 )}
 
-                <div className={isBroker ? "col-span-1" : ""}>
+                {/* Field 4: Goal (Both) */}
+                <div className={`${isBroker ? "col-span-1" : ""} flex flex-col gap-2`}>
                   <CustomDropdown
                     label="Primary Goal"
                     placeholder="Select your primary goal"
@@ -564,8 +655,18 @@ const RegistrationSection = () => {
                     value={formData.goal}
                     onChange={(val) => setFormData({ ...formData, goal: val })}
                   />
+                  {formData.goal === OTHER_OPTION && (
+                      <input
+                        type="text"
+                        placeholder="Please specify your goal"
+                        value={customInputs.goal}
+                        onChange={(e) => setCustomInputs({...customInputs, goal: e.target.value})}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all text-gray-700 placeholder-gray-400"
+                      />
+                  )}
                 </div>
 
+                {/* Optional Catalog Link */}
                 {isBroker && (
                   <div className="flex flex-col gap-2">
                     <label className="text-sm font-bold text-gray-700">
@@ -587,6 +688,7 @@ const RegistrationSection = () => {
                 )}
               </div>
 
+              {/* Full Width Field for Seller Catalog */}
               {!isBroker && (
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-bold text-gray-700">
@@ -604,18 +706,12 @@ const RegistrationSection = () => {
                 </div>
               )}
 
-              {/* Submit Button (With Back Button Added) */}
-              <div className="pt-4 flex flex-col md:flex-row gap-4">
-                <button
-                  onClick={() => setStep(1)}
-                  className="w-full md:w-1/3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-4 rounded-xl transition-all"
-                >
-                  Back
-                </button>
+              {/* Submit Button */}
+              <div className="pt-4">
                 <button
                   onClick={handleFinalSubmit}
                   disabled={!isStep2Valid() || loading}
-                  className="w-full md:w-2/3 bg-[#1a2b6d] hover:bg-[#132052] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-900/10 transition-transform active:scale-[0.98] flex items-center justify-center gap-2"
+                  className="w-full bg-[#1a2b6d] hover:bg-[#132052] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-900/10 transition-transform active:scale-[0.98] flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
@@ -631,7 +727,7 @@ const RegistrationSection = () => {
           )}
         </div>
       </div>
-      {/* --- STATS FOOTER --- */}
+      {/* ... Stats Footer (Unchanged) ... */}
       <div className="md:hidden w-full max-w-sm">
         <Swiper
           modules={[Pagination, Autoplay]}
